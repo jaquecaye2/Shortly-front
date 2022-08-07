@@ -1,12 +1,46 @@
-import { useContext, useState } from "react";
+import { useContext } from "react";
 import Context from "../../Context/Context";
 import styled from "styled-components";
+import { useEffect, useState } from "react";
+import axios from "axios";
 
 import trofeu from "../../assets/images/trofeu.png";
+
+function Ranking({ posicao, url }) {
+  return (
+    <p>
+      {posicao + 1}. {url.name} - {url.linksCount} links - {url.visitCount} visualizações
+    </p>
+  );
+}
 
 export default function RankingWindow() {
   const { token } = useContext(Context);
   const [isLogged, setIsLogged] = useState(false);
+  const [urlsRanking, setUrlsRanking] = useState([]);
+
+  useEffect(() => {
+    if (token.length !== 0) {
+      setIsLogged(true);
+    }
+  }, [token]);
+
+  function renderizarUrls() {
+    const promise = axios.get("https://back-shortly-jc.herokuapp.com/ranking");
+
+    promise
+      .then((response) => {
+        console.log(response.data);
+        setUrlsRanking(response.data);
+      })
+      .catch((error) => {
+        alert(error.response.data);
+      });
+  }
+
+  useEffect(() => {
+    renderizarUrls();
+  }, []);
 
   return (
     <>
@@ -14,16 +48,19 @@ export default function RankingWindow() {
         <img src={trofeu} alt="Troféu" />
         <h1>Ranking</h1>
       </Titulo>
-      <Classificacao>
-        <p>1. Fulaninha - 32 links - 1.703.584 visualizações</p>
-        <p>2. Ciclano - 20 links - 1.113.347 visualizações</p>
-        <p>3. Beltrana - 18 links - 852.961 visualizações</p>
-        <p>4. Joaozin - 14 links - 492.173 visualizações</p>
-        <p>
-          5. DEFINITIVAMENTE_NAO_E_UM_BOT - 12345252 links - 37.707
-          visualizações
-        </p>
-      </Classificacao>
+
+      {urlsRanking.length === 0 ? (
+        <Classificacao>
+          <p>Não há URLs cadastradas</p>
+        </Classificacao>
+      ) : (
+        <Classificacao>
+          {urlsRanking.map((url, index, posicao) => (
+            <Ranking key={index} posicao={index} url={url} />
+          ))}
+        </Classificacao>
+      )}
+
       {!isLogged ? (
         <TextoLogar>
           <h2>Crie sua conta para usar nosso serviço!</h2>
@@ -66,13 +103,13 @@ const Classificacao = styled.div`
 `;
 
 const TextoLogar = styled.div`
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 50px;
 
-    h2{
-        font-size: 30px;
-        font-weight: bold;
-    }
-`
+  h2 {
+    font-size: 30px;
+    font-weight: bold;
+  }
+`;

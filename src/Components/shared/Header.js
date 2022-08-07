@@ -1,13 +1,27 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import Context from "../../Context/Context";
 import styled from "styled-components";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import logo from "../../assets/images/short.png";
 
 export default function Header() {
-  const { token } = useContext(Context);
+  const { token, name, setToken } = useContext(Context);
   const [isLogged, setIsLogged] = useState(false);
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (token.length !== 0) {
+      setIsLogged(true);
+    }
+  }, [token]);
+
+  function sair() {
+    setToken("");
+    setIsLogged(false)
+    navigate("/");
+  }
 
   return (
     <HeaderEstilo>
@@ -23,7 +37,7 @@ export default function Header() {
       ) : (
         <LinkLogado>
           <div>
-            <p>Seja bem-vindo(a), Pessoa!</p>
+            <p>Seja bem-vindo(a), {name}</p>
           </div>
           <div className="links">
             <Link to="/myurls">
@@ -32,7 +46,7 @@ export default function Header() {
             <Link to="/">
               <p>Ranking</p>
             </Link>
-            <a>
+            <a onClick={sair}>
               <p>Sair</p>
             </a>
           </div>
@@ -117,7 +131,7 @@ const Logo = styled.div`
   align-items: center;
   justify-content: center;
 
-  a{
+  a {
     text-decoration: none;
     color: var(--cor-texto);
     display: flex;

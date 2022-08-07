@@ -1,55 +1,258 @@
+import { useContext } from "react";
+import Context from "../../Context/Context";
 import styled from "styled-components";
+import React from "react";
+import axios from "axios";
+import { ThreeDots } from "react-loader-spinner";
+import Modal from "react-modal";
 
 import trash from "../../assets/images/trash.png";
+import openLink from "../../assets/images/open-link.png";
+
+function URLUnica({ url, token, renderizarUrls }) {
+  const [carregandoDelete, setCarregandoDelete] = React.useState(false);
+  const [carregandoLink, setCarregandoLink] = React.useState(false);
+
+  const customStyles = {
+    content: {
+      top: "50%",
+      left: "50%",
+      right: "auto",
+      bottom: "auto",
+      marginRight: "-50%",
+      transform: "translate(-50%, -50%)",
+      border: "1px solid var(--cor-button)",
+      borderRadius: '10px',
+    },
+  };
+
+  const [modalIsOpen, setIsOpen] = React.useState(false);
+
+  function openModal() {
+    setIsOpen(true);
+  }
+
+  function closeModal() {
+    setIsOpen(false);
+  }
+
+  function mostrarLink(){
+    const promise = axios.get(
+      `https://back-shortly-jc.herokuapp.com/urls/${url.id}`
+    );
+
+    promise
+      .then((response) => {
+        openModal()
+      })
+      .catch((error) => {
+        alert(error.response.data);
+      });
+  }
+
+  function excluirLink() {
+    setCarregandoDelete(true);
+
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+
+    const promise = axios.delete(
+      `https://back-shortly-jc.herokuapp.com/urls/${url.id}`,
+      config
+    );
+
+    promise
+      .then((response) => {
+        alert("URL excluída com sucesso!");
+        setCarregandoDelete(false);
+        renderizarUrls();
+      })
+      .catch((error) => {
+        alert(error.response.data);
+        setCarregandoDelete(false);
+      });
+  }
+
+  // função não esta funcionando
+  function abrirLink() {
+    setCarregandoLink(true);
+
+    const promise = axios.get(
+      `https://back-shortly-jc.herokuapp.com/urls/open/${url.shortUrl}`
+    );
+
+    promise
+      .then((response) => {
+        setCarregandoLink(false);
+      })
+      .catch((error) => {
+        alert(error.response.data);
+        setCarregandoLink(false);
+      });
+  }
+
+  return (
+    <URL>
+      <div className="infoUrl" onClick={mostrarLink}>
+        <p className="link">{url.url}</p>
+        <p>{url.shortUrl}</p>
+        <p>Quantidade de visitantes: {url.visitCount}</p>
+      </div>
+
+      {carregandoDelete ? (
+        <div className="deletarUrl">
+          <ThreeDots color="#80CC74" height={30} width={30} />
+        </div>
+      ) : (
+        <div className="deletarUrl" onClick={excluirLink}>
+          <img src={trash} alt="excluir item" />
+        </div>
+      )}
+
+      {carregandoLink ? (
+        <div className="abrirLink">
+          <ThreeDots color="#80CC74" height={30} width={30} />
+        </div>
+      ) : (
+        <div className="abrirLink" onClick={abrirLink}>
+          <img src={openLink} alt="abrir link" />
+        </div>
+      )}
+
+      <Modal
+        isOpen={modalIsOpen}
+        onRequestClose={closeModal}
+        style={customStyles}
+      >
+        <ModalEstilo>
+          <h4>Informações sobre a URL:</h4>
+          <p>URL: <span>{url.url}</span></p>
+          <p>URL Encurtada: <span>{url.shortUrl}</span></p>
+          <p>Quantidade de visitantes: <span>{url.visitCount}</span></p>
+          <button onClick={closeModal}>Fechar</button>
+        </ModalEstilo>
+      </Modal>
+    </URL>
+  );
+}
 
 export default function MyUrlsWindow() {
+  const { token, setName } = useContext(Context);
+
+  const [url, setUrl] = React.useState("");
+  const [shortUrl, setShortUrl] = React.useState("");
+
+  const [disabled, setDisabled] = React.useState(false);
+  const [carregando, setCarregando] = React.useState(false);
+
+  const [urlsCadastradas, setUrlsCadastrasdas] = React.useState([]);
+
+  function submitForm(event) {
+    event.preventDefault();
+    setDisabled(true);
+    setCarregando(true);
+
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+
+    const urlEnviada = {
+      url,
+    };
+
+    const promise = axios.post(
+      "https://back-shortly-jc.herokuapp.com/urls/shorten",
+      urlEnviada,
+      config
+    );
+
+    promise
+      .then((response) => {
+        console.log(response.data);
+        setShortUrl(response.data);
+        alert("Url encurtada com sucesso!");
+        setDisabled(false);
+        setCarregando(false);
+        setUrl("");
+      })
+      .catch((error) => {
+        console.log(error);
+        alert(error.response.data);
+        setDisabled(false);
+        setCarregando(false);
+        setUrl("");
+      });
+  }
+
+  function renderizarUrls() {
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+
+    const promise = axios.get(
+      "https://back-shortly-jc.herokuapp.com/users/me",
+      config
+    );
+
+    promise
+      .then((response) => {
+        setUrlsCadastrasdas(response.data.shortenedUrls);
+        setName(response.data.name);
+      })
+      .catch((error) => {
+        alert(error.response.data);
+      });
+  }
+
+  React.useEffect(() => {
+    renderizarUrls();
+  }, [shortUrl]);
+
   return (
     <>
       <EncurtarUrl>
-        <form>
+        <form onSubmit={submitForm}>
           <input
             type="url"
             name="url"
             id="url"
             placeholder="Links que cabem no bolso"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            required
           />
-          <button>Encurtar link</button>
+          {carregando ? (
+            <button disabled={disabled}>
+              <ThreeDots color="#ffffff" height={45} width={80} />
+            </button>
+          ) : (
+            <button disabled={disabled}>Encurtar link</button>
+          )}
         </form>
       </EncurtarUrl>
-      <MinhasUrls>
-        <URL>
-          <div className="infoUrl">
-            <p className="link">https://www.driven.com.br</p>
-            <p>e4231A</p>
-            <p>Quantidade de visitantes: 271</p>
-          </div>
-          <div className="deletarUrl">
-            <img src={trash} alt="excluir item" />
-          </div>
-        </URL>
-        <URL>
-          <div className="infoUrl">
-            <p className="link">https://www.globo.com.br</p>
-            <p>bt24kS</p>
-            <p>Quantidade de visitantes: 03</p>
-          </div>
-          <div className="deletarUrl">
-            <img src={trash} alt="excluir item" />
-          </div>
-        </URL>
-        <URL>
-          <div className="infoUrl">
-            <p className="link">
-              https://br.freepik.com/fotos-gratis/nuvem-download-icon-line-conexao-da-placa-de-circuito_1198388.htm#query=link%20grande&position=0&from_view=keyword
-            </p>
-            <p>59sitA</p>
-            <p>Quantidade de visitantes: 03</p>
-          </div>
-          <div className="deletarUrl">
-            <img src={trash} alt="excluir item" />
-          </div>
-        </URL>
-      </MinhasUrls>
+      {urlsCadastradas.length === 0 ? (
+        <MinhasUrls2>
+          <h3>Não há URLs cadastradas</h3>
+        </MinhasUrls2>
+      ) : (
+        <MinhasUrls>
+          {urlsCadastradas.map((url, index) => (
+            <URLUnica
+              key={index}
+              url={url}
+              token={token}
+              renderizarUrls={renderizarUrls}
+            />
+          ))}
+        </MinhasUrls>
+      )}
     </>
   );
 }
@@ -86,6 +289,9 @@ const EncurtarUrl = styled.div`
     font-size: 14px;
     font-weight: bold;
     border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
     :hover {
       cursor: pointer;
@@ -99,6 +305,19 @@ const MinhasUrls = styled.div`
   margin: 0 auto;
 `;
 
+const MinhasUrls2 = styled.div`
+  width: 70%;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  h3 {
+    font-size: 18px;
+    color: var(--cor-texto-input);
+  }
+`;
+
 const URL = styled.div`
   display: flex;
   align-items: center;
@@ -106,7 +325,7 @@ const URL = styled.div`
   margin-bottom: 20px;
 
   div.infoUrl {
-    width: 87%;
+    width: 84%;
     height: 60px;
     display: flex;
     align-items: center;
@@ -116,19 +335,43 @@ const URL = styled.div`
 
     p {
       color: var(--cor-fundo);
-      font: 14px;
+      font-size: 14px;
       font-weight: 400;
       height: 15px;
       width: 30%;
       text-align: center;
       overflow: hidden;
     }
+
+    :hover {
+      cursor: pointer;
+      filter: brightness(0.9);
+    }
   }
 
   div.deletarUrl {
     background-color: var(--cor-fundo);
     border: 1px solid var(--cor-borda-input);
-    width: 13%;
+    width: 8%;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    img {
+      width: 30px;
+    }
+
+    :hover {
+      cursor: pointer;
+      filter: brightness(0.9);
+    }
+  }
+
+  div.abrirLink {
+    background-color: var(--cor-fundo);
+    border: 1px solid var(--cor-borda-input);
+    width: 8%;
     height: 60px;
     display: flex;
     align-items: center;
@@ -145,3 +388,45 @@ const URL = styled.div`
     }
   }
 `;
+
+const ModalEstilo = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+
+  h4{
+    font-size: 18px;
+    margin-bottom: 20px;
+    font-weight: bold;
+  }
+
+  p{
+    line-height: 25px;
+
+    span{
+      font-weight: 200;
+    }
+  }
+
+  button {
+    margin-top: 30px;
+    width: 100px;
+    height: 30px;
+    border: none;
+    background-color: var(--cor-button);
+    color: var(--cor-fundo);
+    font-size: 14px;
+    font-weight: bold;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    :hover {
+      cursor: pointer;
+      filter: brightness(0.8);
+    }
+  }
+
+`

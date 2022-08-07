@@ -43,7 +43,7 @@ export default function SingInWindow() {
         })
         .catch((error) => {
           console.log(error);
-          alert("Os dados foram inseridos incorretamente. Tente novamente!");
+          alert(error.response.data);
           setEmail("");
           setSenha("");
           setNome("");

@@ -11,10 +11,11 @@ import MyUrlsWindow from "./pages/MyUrlsWindow.js"
 
 export default function App() {
   const [token, setToken] = React.useState("");
+  const [name, setName] = React.useState("");
 
   return (
     <>
-      <Context.Provider value={{ token, setToken }}>
+      <Context.Provider value={{ token, setToken, name, setName }}>
         <BrowserRouter>
           <Header />
           <Routes>

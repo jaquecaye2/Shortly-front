@@ -42,7 +42,7 @@ export default function SingInWindow() {
         navigate("/myurls");
       })
       .catch((error) => {
-        alert("Os dados foram inseridos incorretamente. Tente novamente!");
+        alert(error.response.data);
         setEmail("");
         setSenha("");
         setDisabled(false);
