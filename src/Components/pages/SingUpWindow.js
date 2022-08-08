@@ -44,10 +44,6 @@ export default function SingInWindow() {
         .catch((error) => {
           console.log(error);
           alert(error.response.data);
-          setEmail("");
-          setSenha("");
-          setNome("");
-          setConfirmaSenha("");
           setDisabled(false);
           setCorBackgroundInput("#ffffff");
           setCarregando(false);

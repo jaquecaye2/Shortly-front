@@ -43,7 +43,6 @@ export default function SingInWindow() {
       })
       .catch((error) => {
         alert(error.response.data);
-        setEmail("");
         setSenha("");
         setDisabled(false);
         setCorBackgroundInput("#ffffff");

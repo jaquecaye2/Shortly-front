@@ -15,14 +15,14 @@ function URLUnica({ url, token, renderizarUrls }) {
 
   const customStyles = {
     content: {
-      top: "50%",
+      top: "60%",
       left: "50%",
       right: "auto",
       bottom: "auto",
       marginRight: "-50%",
       transform: "translate(-50%, -50%)",
       border: "1px solid var(--cor-button)",
-      borderRadius: '10px',
+      borderRadius: "10px",
     },
   };
 
@@ -36,14 +36,14 @@ function URLUnica({ url, token, renderizarUrls }) {
     setIsOpen(false);
   }
 
-  function mostrarLink(){
+  function mostrarLink() {
     const promise = axios.get(
       `https://back-shortly-jc.herokuapp.com/urls/${url.id}`
     );
 
     promise
       .then((response) => {
-        openModal()
+        openModal();
       })
       .catch((error) => {
         alert(error.response.data);
@@ -86,8 +86,8 @@ function URLUnica({ url, token, renderizarUrls }) {
     promise
       .then((response) => {
         setCarregandoLink(false);
-        renderizarUrls()
-        window.open(url.url, "_blank")
+        renderizarUrls();
+        window.open(url.url, "_blank");
       })
       .catch((error) => {
         alert(error.response.data);
@@ -98,9 +98,9 @@ function URLUnica({ url, token, renderizarUrls }) {
   return (
     <URL>
       <div className="infoUrl" onClick={mostrarLink}>
-        <p className="link">{url.url}</p>
+        <p alt="Url">{url.url}</p>
         <p>{url.shortUrl}</p>
-        <p>Quantidade de visitantes: {url.visitCount}</p>
+        <p className="visitCount">{url.visitCount}</p>
       </div>
 
       {carregandoDelete ? (
@@ -130,9 +130,15 @@ function URLUnica({ url, token, renderizarUrls }) {
       >
         <ModalEstilo>
           <h4>Informações sobre a URL:</h4>
-          <p>URL: <span>{url.url}</span></p>
-          <p>URL Encurtada: <span>{url.shortUrl}</span></p>
-          <p>Quantidade de visitantes: <span>{url.visitCount}</span></p>
+          <p>
+            URL: <span>{url.url}</span>
+          </p>
+          <p>
+            URL Encurtada: <span>{url.shortUrl}</span>
+          </p>
+          <p>
+            Quantidade de visitantes: <span>{url.visitCount}</span>
+          </p>
           <button onClick={closeModal}>Fechar</button>
         </ModalEstilo>
       </Modal>
@@ -333,15 +339,20 @@ const URL = styled.div`
     justify-content: space-around;
     background-color: var(--cor-detalhes);
     border-radius: 12px 0 0 12px;
+    padding: 0 15px;
 
     p {
       color: var(--cor-fundo);
       font-size: 14px;
       font-weight: 400;
       height: 15px;
-      width: 30%;
+      width: 40%;
       text-align: center;
       overflow: hidden;
+    }
+
+    p.visitCount {
+      width: 20%;
     }
 
     :hover {
@@ -396,16 +407,16 @@ const ModalEstilo = styled.div`
   justify-content: center;
   flex-direction: column;
 
-  h4{
+  h4 {
     font-size: 18px;
     margin-bottom: 20px;
     font-weight: bold;
   }
 
-  p{
+  p {
     line-height: 25px;
 
-    span{
+    span {
       font-weight: 200;
     }
   }
@@ -429,5 +440,4 @@ const ModalEstilo = styled.div`
       filter: brightness(0.8);
     }
   }
-
-`
+`;
