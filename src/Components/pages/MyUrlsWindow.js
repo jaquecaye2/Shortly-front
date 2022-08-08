@@ -76,7 +76,6 @@ function URLUnica({ url, token, renderizarUrls }) {
       });
   }
 
-  // função não esta funcionando
   function abrirLink() {
     setCarregandoLink(true);
 
