@@ -87,6 +87,8 @@ function URLUnica({ url, token, renderizarUrls }) {
     promise
       .then((response) => {
         setCarregandoLink(false);
+        renderizarUrls()
+        window.open(url.url, "_blank")
       })
       .catch((error) => {
         alert(error.response.data);
